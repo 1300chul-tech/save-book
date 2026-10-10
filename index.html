@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>오늘의 독서왕</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f6f2e9;
+  color: #273d35;
+  font-family: system-ui, sans-serif;
+}
+
+header {
+  padding: 32px 20px;
+  background: #244e41;
+  color: white;
+  text-align: center;
+}
+
+header h1 {
+  margin: 10px 0;
+}
+
+header p {
+  color: #d7e8dc;
+}
+
+main {
+  max-width: 850px;
+  margin: auto;
+  padding: 18px;
+}
+
+.panel {
+  background: white;
+  border-radius: 20px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 20px #244e4110;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin: 16px 0 7px;
+  font-weight: bold;
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d5ddd4;
+  border-radius: 10px;
+  background: #fafbf8;
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 17px;
+  background: #2d6651;
+  color: white;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+.secondary {
+  background: #e8efe9;
+  color: #244e41;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.row button {
+  flex: 1;
+}
+
+.muted {
+  font-size: 14px;
+  color: #67796c;
+  line-height: 1.6;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.book {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e2e8dd;
+}
+
+.cover {
+  height: 220px;
+  background: linear-gradient(140deg, #365e4e, #92aa83);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+}
+
+.cover span {
+  padding: 20px;
+  font-size: 24px;
+  overflow-wrap: anywhere;
+}
+
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  padding: 16px;
+}
+
+.info h3 {
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.info p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+.preview {
+  max-width: 130px;
+  max-height: 170px;
+  margin-top: 12px;
+  border-radius: 8px;
+}
+
+#message {
+  min-height: 24px;
+  margin: 14px 0;
+  color: #9b4d19;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+footer {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 13px;
+  color: #67796c;
+  line-height: 1.7;
+}
+
+@media (max-width: 440px) {
+  main {
+    padding: 12px;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .cover {
+    height: 180px;
+  }
+
+  .info {
+    padding: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div style="font-size:45px">📚</div>
+  <h1>오늘의 독서왕!</h1>
+  <p>읽은 책 한 권, 나만의 이야기 하나.</p>
+  <div id="clock"></div>
+</header>
+
+<main>
+  <p id="message" role="status" aria-live="polite"></p>
+
+  <section id="auth" class="panel">
+    <h2>내 서재로 들어가기</h2>
+
+    <p class="muted">
+      이 아이디는 같은 브라우저 안에서 사용하는 개인 서재용이야.
+    </p>
+
+    <form id="authForm">
+      <label for="username">아이디</label>
+      <input
+        id="username"
+        maxlength="40"
+        required
+        autocomplete="username"
+        placeholder="아이디를 입력해 줘"
+      >
+
+      <label for="password">비밀번호</label>
+      <input
+        id="password"
+        type="password"
+        required
+        autocomplete="current-password"
+        placeholder="비밀번호"
+      >
+
+      <div class="row" style="margin-top:20px">
+        <button type="submit">로그인</button>
+        <button id="signup" type="button" class="secondary">
+          아이디 만들기
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section id="app" hidden>
+    <div class="row" style="margin-bottom:20px">
+      <h2 id="greeting" style="flex:1;margin:0"></h2>
+
+      <button
+        id="logout"
+        class="secondary"
+        style="flex:none"
+      >
+        로그아웃
+      </button>
+    </div>
+
+    <section class="panel">
+      <h2>✏️ 독서 기록 쓰기</h2>
+
+      <form id="bookForm">
+        <label for="title">책 제목</label>
+        <input
+          id="title"
+          required
+          maxlength="150"
+          placeholder="오늘은 무슨 책을 읽었어?"
+        >
+
+        <label for="cover">책 표지 이미지 (선택)</label>
+        <input id="cover" type="file" accept="image/*">
+
+        <img
+          id="preview"
+          class="preview"
+          alt="선택한 표지 미리보기"
+          hidden
+        >
+
+        <label for="review">감상문 또는 줄거리</label>
+        <textarea
+          id="review"
+          maxlength="10000"
+          placeholder="기억에 남는 장면이나 느낀 점을 남겨 줘"
+        ></textarea>
+
+        <button
+          id="saveBook"
+          type="submit"
+          style="margin-top:16px;width:100%"
+        >
+          내 서재에 저장하기
+        </button>
+      </form>
+    </section>
+
+    <h2>
+      🌿 나의 서재
+      <small id="count" class="muted"></small>
+    </h2>
+
+    <p id="empty" class="muted">
+      아직 기록이 없어. 첫 책을 등록해 봐!
+    </p>
+
+    <div id="books" class="grid"></div>
+  </section>
+
+  <footer>
+    기록은 이 기기·브라우저에 저장돼.<br>
+    브라우저 데이터를 지우면 기록도 사라져.
+  </footer>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const STORAGE_KEY = "readingKing.v1";
+
+let users = {};
+let currentUser = null;
+let coverData = "";
+let busy = false;
+let storageOK = true;
+let imageLoading = false;
+
+function message(text) {
+  $("message").textContent = text;
+}
+
+// 저장된 아이디와 독서 기록 불러오기
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+
+  if (saved) {
+    users = JSON.parse(saved);
+
+    if (
+      !users ||
+      Array.isArray(users) ||
+      typeof users !== "object"
+    ) {
+      throw new Error("잘못된 저장 데이터");
+    }
+
+    for (const account of Object.values(users)) {
+      if (
+        !account ||
+        typeof account.salt !== "string" ||
+        typeof account.hash !== "string" ||
+        !Array.isArray(account.books)
+      ) {
+        throw new Error("잘못된 계정 데이터");
+      }
+    }
+  }
+} catch (error) {
+  storageOK = false;
+  message(
+    "저장 데이터를 읽을 수 없어. 브라우저 저장 권한이나 데이터를 확인해 줘."
+  );
+}
+
+// 저장에 성공했을 때만 화면의 데이터도 변경
+function persist(nextUsers) {
+  if (!storageOK) {
+    message("저장 기능을 사용할 수 없어.");
+    return false;
+  }
+
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(nextUsers)
+    );
+
+    users = nextUsers;
+    return true;
+  } catch (error) {
+    message(
+      "저장하지 못했어. 브라우저 저장 공간이나 저장 권한을 확인해 줘."
+    );
+
+    return false;
+  }
+}
+
+// 한국 시간 표시
+function updateClock() {
+  $("clock").textContent = new Intl.DateTimeFormat(
+    "ko-KR",
+    {
+      timeZone: "Asia/Seoul",
+      dateStyle: "long",
+      timeStyle: "short"
+    }
+  ).format(new Date());
+}
+
+updateClock();
+setInterval(updateClock, 60000);
+
+function hex(bytes) {
+  return Array.from(
+    bytes,
+    number => number.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+// 비밀번호 원문 대신 해시 저장
+async function passwordHash(password, salt) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+
+  const result = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: new TextEncoder().encode(salt),
+      iterations: 210000,
+      hash: "SHA-256"
+    },
+    key,
+    256
+  );
+
+  return hex(new Uint8Array(result));
+}
+
+// 회원가입 또는 로그인
+async function authenticate(isSignup) {
+  if (busy) return;
+
+  if (!storageOK) {
+    message("저장 기능을 사용할 수 없어.");
+    return;
+  }
+
+  const username = $("username").value.trim();
+  const password = $("password").value;
+
+  if (!username || !password) {
+    message("아이디와 비밀번호를 입력해 줘!");
+    return;
+  }
+
+  if (!globalThis.crypto?.subtle) {
+    message(
+      "비밀번호 기능을 사용하려면 HTTPS 웹 주소에서 열어 줘."
+    );
+    return;
+  }
+
+  busy = true;
+  $("signup").disabled = true;
+  message("확인 중…");
+
+  try {
+    const exists = Object.prototype.hasOwnProperty.call(
+      users,
+      username
+    );
+
+    if (isSignup) {
+      if (exists) {
+        message("이미 있는 아이디야!");
+        return;
+      }
+
+      if (password.length < 4) {
+        message("비밀번호는 4글자 이상으로 만들어 줘.");
+        return;
+      }
+
+      const salt = hex(
+        crypto.getRandomValues(new Uint8Array(16))
+      );
+
+      const account = {
+        salt,
+        hash: await passwordHash(password, salt),
+        books: []
+      };
+
+      if (!persist({
+        ...users,
+        [username]: account
+      })) {
+        return;
+      }
+    } else {
+      if (
+        !exists ||
+        await passwordHash(
+          password,
+          users[username].salt
+        ) !== users[username].hash
+      ) {
+        message("아이디 또는 비밀번호가 틀렸어.");
+        return;
+      }
+    }
+
+    currentUser = username;
+
+    $("auth").hidden = true;
+    $("app").hidden = false;
+    $("password").value = "";
+
+    renderBooks();
+
+    message(
+      isSignup
+        ? "아이디를 만들었어! 첫 독서 기록을 남겨 봐."
+        : "다시 와서 반가워!"
+    );
+  } catch (error) {
+    message(
+      "로그인 처리에 실패했어. 브라우저나 저장 데이터를 확인해 줘."
+    );
+  } finally {
+    busy = false;
+    $("signup").disabled = false;
+  }
+}
+
+$("authForm").addEventListener("submit", event => {
+  event.preventDefault();
+  authenticate(false);
+});
+
+$("signup").onclick = () => authenticate(true);
+
+// 이미지 준비 중에는 로그아웃을 막아 계정 간 섞임 방지
+$("logout").onclick = () => {
+  if (imageLoading) {
+    message("이미지를 준비하는 중이야. 잠깐 기다려 줘.");
+    return;
+  }
+
+  currentUser = null;
+  coverData = "";
+
+  $("bookForm").reset();
+  $("preview").hidden = true;
+  $("preview").removeAttribute("src");
+  $("books").replaceChildren();
+
+  $("app").hidden = true;
+  $("auth").hidden = false;
+
+  message("로그아웃했어.");
+};
+
+// 이미지를 작게 줄여서 저장 공간 절약
+$("cover").onchange = async () => {
+  if (imageLoading) return;
+
+  coverData = "";
+  $("preview").hidden = true;
+
+  const file = $("cover").files[0];
+
+  if (!file) return;
+
+  if (file.size > 8 * 1024 * 1024) {
+    $("cover").value = "";
+    message("8MB 이하 이미지를 골라 줘.");
+    return;
+  }
+
+  imageLoading = true;
+  $("cover").disabled = true;
+  $("saveBook").disabled = true;
+
+  let imageURL;
+
+  try {
+    imageURL = URL.createObjectURL(file);
+
+    const image = new Image();
+    image.src = imageURL;
+
+    await image.decode();
+
+    const scale = Math.min(
+      1,
+      600 / Math.max(image.width, image.height)
+    );
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = Math.max(
+      1,
+      Math.round(image.width * scale)
+    );
+
+    canvas.height = Math.max(
+      1,
+      Math.round(image.height * scale)
+    );
+
+    const context = canvas.getContext("2d");
+
+    context.fillStyle = "white";
+    context.fillRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    context.drawImage(
+      image,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    coverData = canvas.toDataURL(
+      "image/jpeg",
+      0.75
+    );
+
+    $("preview").src = coverData;
+    $("preview").hidden = false;
+
+    message("표지를 준비했어. 저장 버튼을 눌러 줘!");
+  } catch (error) {
+    $("cover").value = "";
+    message(
+      "이미지를 열지 못했어. JPG 또는 PNG 이미지를 골라 줘."
+    );
+  } finally {
+    if (imageURL) {
+      URL.revokeObjectURL(imageURL);
+    }
+
+    imageLoading = false;
+    $("cover").disabled = false;
+    $("saveBook").disabled = false;
+  }
+};
+
+// 독서 기록 자동 저장
+$("bookForm").onsubmit = event => {
+  event.preventDefault();
+
+  if (!currentUser || imageLoading) return;
+
+  const title = $("title").value.trim();
+
+  if (!title) {
+    message("책 제목을 입력해 줘!");
+    return;
+  }
+
+  const book = {
+    title,
+    review: $("review").value.trim(),
+    cover: coverData,
+    date: new Date().toISOString()
+  };
+
+  const account = users[currentUser];
+
+  const nextUsers = {
+    ...users,
+    [currentUser]: {
+      ...account,
+      books: [book, ...account.books]
+    }
+  };
+
+  if (persist(nextUsers)) {
+    $("bookForm").reset();
+
+    coverData = "";
+    $("preview").hidden = true;
+    $("preview").removeAttribute("src");
+
+    renderBooks();
+    message("독서 기록을 저장했어!");
+  }
+};
+
+// 나의 서재 표시
+function renderBooks() {
+  $("greeting").textContent =
+    currentUser + "님의 서재";
+
+  const books = users[currentUser].books;
+
+  $("count").textContent =
+    "독서 기록 " + books.length + "개";
+
+  $("empty").hidden = books.length > 0;
+  $("books").replaceChildren();
+
+  for (const book of books) {
+    const card = document.createElement("article");
+    card.className = "book";
+
+    const cover = document.createElement("div");
+    cover.className = "cover";
+
+    if (
+      typeof book.cover === "string" &&
+      book.cover.startsWith("data:image/jpeg;base64,")
+    ) {
+      const image = document.createElement("img");
+
+      image.src = book.cover;
+      image.alt = book.title + " 표지";
+
+      cover.append(image);
+    } else {
+      const placeholder = document.createElement("span");
+      placeholder.textContent = "📖 " + book.title;
+
+      cover.append(placeholder);
+    }
+
+    const info = document.createElement("div");
+    info.className = "info";
+
+    const title = document.createElement("h3");
+    title.textContent = book.title;
+
+    const date = document.createElement("small");
+    date.className = "muted";
+
+    const savedDate = new Date(book.date);
+
+    date.textContent = Number.isNaN(savedDate.getTime())
+      ? "날짜 정보 없음"
+      : new Intl.DateTimeFormat(
+          "ko-KR",
+          {
+            timeZone: "Asia/Seoul",
+            dateStyle: "medium",
+            timeStyle: "short"
+          }
+        ).format(savedDate);
+
+    const review = document.createElement("p");
+    review.textContent =
+      book.review || "감상문이 아직 없어.";
+
+    info.append(title, date, review);
+    card.append(cover, info);
+
+    $("books").append(card);
+  }
+}
+</script>
+
+</body>
+</html>
